@@ -17,14 +17,13 @@ class NewsItemTest extends DatabaseDependantTestCase
     {
         $newsItem = new NewsItem(
             'News',
+            'https://link.com',
             'News description',
             '60e81a639a79475fee72acaf',
             new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
             'Maks Barskih',
             ['https://1.img','https://2.img','https://3.img']
         );
-        $newsItem->setTitle('News');
-        $newsItem->setDescription('News description');
 
         $this->entityManager->persist($newsItem);
 
@@ -35,6 +34,7 @@ class NewsItemTest extends DatabaseDependantTestCase
         $newsItemRecord = $newsItemRepo->findOneBy(['title' => 'News']);
 
         $this->assertEquals('News', $newsItemRecord->getTitle());
+        $this->assertEquals('https://link.com', $newsItemRecord->getLink());
         $this->assertEquals('News description', $newsItemRecord->getDescription());
         $this->assertEquals('60e81a639a79475fee72acaf', $newsItemRecord->getGuid());
         $this->assertEquals('Fri, 09 Jul 21 10:45:21 +0300', $newsItemRecord->getPubDate()->format("D, d M y H:i:s O"));

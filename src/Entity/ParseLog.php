@@ -35,7 +35,7 @@ class ParseLog
     /**
      * @ORM\Column(name="response_http_code", type="integer")
      */
-    private string $responseHTTPCode;
+    private int $responseHTTPCode;
 
     /**
      * @ORM\Column(name="response_body", type="json")
@@ -46,7 +46,7 @@ class ParseLog
         \DateTimeImmutable $date,
         string $requestMethod,
         string $requestURL,
-        string $responseHTTPCode,
+        int $responseHTTPCode,
         array $responseBody
     )
     {

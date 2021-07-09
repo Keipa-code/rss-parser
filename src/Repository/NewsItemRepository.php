@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\NewsItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -47,4 +49,17 @@ class NewsItemRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
+    public function hasByGuid(string $guid): bool
+    {
+        return $this->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
+                ->andWhere('t.guid = :guid')
+                ->setParameter(':guid', $guid)
+                ->getQuery()->getSingleScalarResult() > 0;
+    }
 }

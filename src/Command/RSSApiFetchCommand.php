@@ -3,6 +3,8 @@
 namespace App\Command;
 
 use App\Entity\NewsItem;
+use App\Entity\ParseLog;
+use App\Helper\UniCharDecoder;
 use App\Http\RSSApiClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -40,19 +42,36 @@ class RSSApiFetchCommand extends Command
         $response = $this->rssApiClient->fetchRSS();
         /** @noinspection PhpUnhandledExceptionInspection */
         $fetchedBody = $response->getContent();
-        $xml = simplexml_load_string($fetchedBody);
+        $xml = simplexml_load_string($fetchedBody, "SimpleXMLElement", LIBXML_NOCDATA);
+        $json = json_encode($xml);
+        $newsList = json_decode($json, true);
 
-        $newsList = $xml->xpath('//item');
-
-        foreach ($newsList as $item){
-            dd($item->title->__toString());
-            //$newsItem = new NewsItem();
-        }
-
-
-        $this->entityManager->persist($newsItem);
-
+        $parseLog = new ParseLog(
+            new \DateTimeImmutable('now'),
+            $response->getInfo()['http_method'],
+            $response->getInfo()['url'],
+            $response->getStatusCode(),
+            $newsList
+        );
+        $this->entityManager->persist($parseLog);
         $this->entityManager->flush();
+
+        $newsItemRepo = $this->entityManager->getRepository(NewsItem::class);
+        foreach ($newsList['channel']['item'] as $item){
+            if(!$newsItemRepo->hasByGuid($item['guid'])){
+                $newsItem = new NewsItem(
+                    UniCharDecoder::decode($item['title']),
+                    $item['link'],
+                    UniCharDecoder::decode($item['description']),
+                    $item['guid'],
+                    new \DateTimeImmutable($item['pubDate']),
+                    isset($item['author']) ? UniCharDecoder::decode($item['author']) : null,
+                    $item['enclosure'] ?? null
+                );
+                $this->entityManager->persist($newsItem);
+                $this->entityManager->flush();
+            }
+        }
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 

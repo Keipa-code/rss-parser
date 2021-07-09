@@ -19,17 +19,22 @@ class NewsItem
     private ?int $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=3000)
      */
     private string $title;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string")
+     */
+    private string $link;
+
+    /**
+     * @ORM\Column(type="string", length=3000)
      */
     private string $description;
 
     /**
-     * @ORM\Column(type="guid")
+     * @ORM\Column(type="string")
      */
     private string $guid;
     /**
@@ -38,7 +43,7 @@ class NewsItem
     private \DateTimeImmutable $pubDate;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=3000, nullable=true)
      */
     private ?string $author;
 
@@ -48,9 +53,9 @@ class NewsItem
     private ?array $enclosure=[];
 
 
-
     public function __construct(
         string $title,
+        string $link,
         string $description,
         string $guid,
         \DateTimeImmutable $pudDate,
@@ -59,11 +64,12 @@ class NewsItem
     )
     {
         $this->title       = $title;
+        $this->link        = $link;
         $this->description = $description;
         $this->guid        = $guid;
         $this->pubDate     = $pudDate;
         $this->author      = $author;
-        $this->enclosure       = $enclosure;
+        $this->enclosure   = $enclosure;
     }
 
     public function getId(): ?int
@@ -139,6 +145,18 @@ class NewsItem
     public function setGuid(string $guid): self
     {
         $this->guid = $guid;
+
+        return $this;
+    }
+
+    public function getLink(): ?string
+    {
+        return $this->link;
+    }
+
+    public function setLink(string $link): self
+    {
+        $this->link = $link;
 
         return $this;
     }

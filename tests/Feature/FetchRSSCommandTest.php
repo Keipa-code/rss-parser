@@ -7,6 +7,7 @@ namespace App\Tests\Feature;
 
 
 use App\Entity\NewsItem;
+use App\Http\RSSApiClient;
 use App\Tests\DatabaseDependantTestCase;
 use App\Tests\DatabasePrimer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,17 +27,43 @@ class FetchRSSCommandTest extends DatabaseDependantTestCase
         $commandTester = new CommandTester($command);
 
         $commandTester->execute([]);
+
         $newsItemRepo = $this->entityManager->getRepository(NewsItem::class);
 
-        $newsItemRecord = $newsItemRepo->findOneBy(['title' => 'News']);
+        $rssApiClient = self::$kernel->getContainer()->get('rss-api-client');
+        $xml = simplexml_load_string($rssApiClient->fetchRSS()->getContent(), "SimpleXMLElement", LIBXML_NOCDATA);
+        $newsItem = json_decode(json_encode($xml), true)['channel']['item']['0'];
 
-        $this->assertEquals('News', $newsItemRecord->getTitle());
-        $this->assertEquals('News description', $newsItemRecord->getDescription());
+        $newsItemRecord = $newsItemRepo->findOneBy(['guid' => $newsItem['guid']]);
+        $date = new \DateTimeImmutable($newsItem['pubDate']);
 
-        $this->assertEquals('Fri, 09 Jul 21 10:45:21 +0300', $newsItemRecord->getPubDate()->format("D, d M y H:i:s O"));
-        $this->assertEquals('+03:00', $newsItemRecord->getPubDate()->getTimezone()->getName());
+        $this->assertEquals($newsItem['title'], $newsItemRecord->getTitle());
+        $this->assertEquals($newsItem['link'], $newsItemRecord->getLink());
+        $this->assertEquals($newsItem['description'], $newsItemRecord->getDescription());
+        $this->assertEquals($newsItem['guid'], $newsItemRecord->getGuid());
+        $this->assertEquals($date->format("D, d M y H:i:s O"), $newsItemRecord->getPubDate()->format("D, d M y H:i:s O"));
+        $this->assertEquals($date->getTimezone()->getName(), $newsItemRecord->getPubDate()->getTimezone()->getName());
 
-        $this->assertEquals('Maks Barskih', $newsItemRecord->getAuthor());
-        $this->assertEquals(['https://1.img','https://2.img','https://3.img'], $newsItemRecord->getImage());
+        $this->assertEquals($newsItem['author'] ?? '', $newsItemRecord->getAuthor());
+        $this->assertEquals($newsItem['enclosure'] ?? '', $newsItemRecord->getEnclosure());
+    }
+
+    /** @test */
+    public function the_fetch_rss_command_write_log_correctly()
+    {
+        $application = new Application(self::$kernel);
+        $command = $application->find('app:rss:fetch');
+
+        $commandTester = new CommandTester($command);
+
+        $commandTester->execute([]);
+
+        $parseLogRepo = $this->entityManager->getRepository(NewsItem::class);
+        $parseLogRecord = $parseLogRepo->findOneBy(['$responseHTTPCode' => 200]);
+
+        $this->assertEquals('GET', $parseLogRecord->getRequestMethod());
+        $this->assertEquals('http://static.feed.rbc.ru/rbc/logical/footer/news.rss', $parseLogRecord->getRequestURL());
+        $this->assertEquals(200, $parseLogRecord->getResponseHTTPCode());
+        $this->assertArrayHasKey('channel', $parseLogRecord->getResponseBody());
     }
 }
