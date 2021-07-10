@@ -6,6 +6,7 @@ use App\Entity\NewsItem;
 use App\Entity\ParseLog;
 use App\Helper\UniCharDecoder;
 use App\Http\RSSApiClient;
+use App\Repository\NewsItemRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,6 +23,8 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 )]
 class RSSApiFetchCommand extends Command
 {
+    private const BATCH_SIZE = 5;
+    private int $i = 1;
     private EntityManagerInterface $entityManager;
     private RSSApiClient $rssApiClient;
 
@@ -56,7 +59,10 @@ class RSSApiFetchCommand extends Command
         $this->entityManager->persist($parseLog);
         $this->entityManager->flush();
 
+        /** @var NewsItemRepository $newsItemRepo */
         $newsItemRepo = $this->entityManager->getRepository(NewsItem::class);
+
+        $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
         foreach ($newsList['channel']['item'] as $item){
             if(!$newsItemRepo->hasByGuid($item['guid'])){
                 $newsItem = new NewsItem(
@@ -69,11 +75,19 @@ class RSSApiFetchCommand extends Command
                     $item['enclosure'] ?? null
                 );
                 $this->entityManager->persist($newsItem);
-                $this->entityManager->flush();
+                if (($this->i % self::BATCH_SIZE) === 0) {
+                    $this->entityManager->flush();
+                    $this->entityManager->clear(); // Detaches all objects from Doctrine!
+                }
+                ++$this->i;
+            }else {
+                break;
             }
         }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $io->success('Завршено успешно. В базу добавлено '. $this->i - 1 . ' нововстей');
 
         return Command::SUCCESS;
     }

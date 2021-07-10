@@ -52,11 +52,6 @@ class NewsItem
      */
     private ?array $enclosure=[];
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private ?bool $last;
-
 
     public function __construct(
         string $title,
@@ -65,8 +60,7 @@ class NewsItem
         string $guid,
         \DateTimeImmutable $pudDate,
         string $author = null,
-        array $enclosure = null,
-        bool $last = null
+        array $enclosure = null
     )
     {
         $this->title       = $title;
@@ -76,7 +70,6 @@ class NewsItem
         $this->pubDate     = $pudDate;
         $this->author      = $author;
         $this->enclosure   = $enclosure;
-        $this->last        = $last;
     }
 
     public function getId(): ?int
@@ -164,18 +157,6 @@ class NewsItem
     public function setLink(string $link): self
     {
         $this->link = $link;
-
-        return $this;
-    }
-
-    public function getLast(): ?bool
-    {
-        return $this->last;
-    }
-
-    public function setLast(?bool $last): self
-    {
-        $this->last = $last;
 
         return $this;
     }
