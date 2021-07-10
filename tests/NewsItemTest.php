@@ -22,7 +22,8 @@ class NewsItemTest extends DatabaseDependantTestCase
             '60e81a639a79475fee72acaf',
             new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
             'Maks Barskih',
-            ['https://1.img','https://2.img','https://3.img']
+            ['https://1.img','https://2.img','https://3.img'],
+            true
         );
 
         $this->entityManager->persist($newsItem);
@@ -39,8 +40,8 @@ class NewsItemTest extends DatabaseDependantTestCase
         $this->assertEquals('60e81a639a79475fee72acaf', $newsItemRecord->getGuid());
         $this->assertEquals('Fri, 09 Jul 21 10:45:21 +0300', $newsItemRecord->getPubDate()->format("D, d M y H:i:s O"));
         $this->assertEquals('+03:00', $newsItemRecord->getPubDate()->getTimezone()->getName());
-
         $this->assertEquals('Maks Barskih', $newsItemRecord->getAuthor());
         $this->assertEquals(['https://1.img','https://2.img','https://3.img'], $newsItemRecord->getEnclosure());
+        $this->assertEquals(true, $newsItemRecord->getLast());
     }
 }

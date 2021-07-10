@@ -62,4 +62,24 @@ class NewsItemRepository extends ServiceEntityRepository
                 ->setParameter(':guid', $guid)
                 ->getQuery()->getSingleScalarResult() > 0;
     }
+
+    public function getLastItemGuid(): string
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.guid')
+            ->andWhere('t.last = :last')
+            ->setParameter(':last', true)
+            ->getQuery()->getSingleScalarResult();
+    }
+
+    public function unsetLastItemByGuid(string $guid)
+    {
+        $qb = $this->createQueryBuilder('t');
+        $qb->update()
+            ->set('t.last', '?1')
+            ->setParameter(1, $qb->expr()->literal(null))
+            ->where('t.guid = ?2')
+            ->setParameter(2, $qb->expr()->literal($guid))
+            ->getQuery()->getSingleScalarResult();
+    }
 }

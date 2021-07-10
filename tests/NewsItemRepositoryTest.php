@@ -57,4 +57,76 @@ final class NewsItemRepositoryTest extends DatabaseDependantTestCase
 
         $this->assertEquals(false, $boolean);
     }
+
+    /** @test */
+    public function the_get_last_item_guid_method_behaves_correctly()
+    {
+        $newsItem = new NewsItem(
+            'News',
+            'https://link.com',
+            'News description',
+            '10081a639a79475fee72acaf',
+            new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
+            null,
+            null,
+            true
+        );
+        $this->entityManager->persist($newsItem);
+        $this->entityManager->flush();
+
+        $newsItem = new NewsItem(
+            'News',
+            'https://link.com',
+            'News description',
+            '10181a639a79475fee72acaf',
+            new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
+            null,
+            null,
+            null
+        );
+        $this->entityManager->persist($newsItem);
+        $this->entityManager->flush();
+
+        $newsItemRepo = $this->entityManager->getRepository(NewsItem::class);
+
+        $guid = $newsItemRepo->getLastItemGuid();
+
+        $this->assertEquals('10081a639a79475fee72acaf', $guid);
+    }
+
+    /** @test */
+    public function the_unset_last_item_by_guid_method_behaves_correctly()
+    {
+        $newsItem = new NewsItem(
+            'News',
+            'https://link.com',
+            'News description',
+            '10081a639a79475fee72acaf',
+            new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
+            null,
+            null,
+            true
+        );
+        $this->entityManager->persist($newsItem);
+        $this->entityManager->flush();
+
+        $newsItem = new NewsItem(
+            'News',
+            'https://link.com',
+            'News description',
+            '10181a639a79475fee72acaf',
+            new \DateTimeImmutable('Fri, 09 Jul 2021 10:45:21 +0300'),
+            null,
+            null,
+            null
+        );
+        $this->entityManager->persist($newsItem);
+        $this->entityManager->flush();
+
+        $newsItemRepo = $this->entityManager->getRepository(NewsItem::class);
+        $newsItemRepo->unsetLastItemByGuid('10081a639a79475fee72acaf');
+        $item = $newsItemRepo->findOneBy(['guid' => '10081a639a79475fee72acaf']);
+
+        $this->assertEquals(true, $item->getLast());
+    }
 }
