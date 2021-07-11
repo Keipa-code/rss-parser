@@ -1,6 +1,17 @@
 version: '3.2'
 services:
 
+  api:
+    ports:
+    - 80:80
+    build:
+      context: docker
+      dockerfile: development/nginx/Dockerfile
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - php-fpm
+
   php-fpm:
     build:
       context: docker

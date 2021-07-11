@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
@@ -28,13 +29,15 @@ class RSSApiFetchCommand extends Command
     private EntityManagerInterface $entityManager;
     private RSSApiClient $rssApiClient;
 
-    public function __construct(EntityManagerInterface $entityManager, RSSApiClient $rssApiClient)
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        RSSApiClient $rssApiClient
+    )
     {
         $this->entityManager = $entityManager;
         $this->rssApiClient = $rssApiClient;
 
         parent::__construct();
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -65,15 +68,14 @@ class RSSApiFetchCommand extends Command
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
         foreach ($newsList['channel']['item'] as $item){
             if(!$newsItemRepo->hasByGuid($item['guid'])){
-                $newsItem = new NewsItem(
-                    UniCharDecoder::decode($item['title']),
-                    $item['link'],
-                    UniCharDecoder::decode($item['description']),
-                    $item['guid'],
-                    new \DateTimeImmutable($item['pubDate']),
-                    isset($item['author']) ? UniCharDecoder::decode($item['author']) : null,
-                    $item['enclosure'] ?? null
-                );
+                $newsItem = new NewsItem();
+                $newsItem->setTitle(UniCharDecoder::decode($item['title']));
+                $newsItem->setLink($item['link']);
+                $newsItem->setDescription(UniCharDecoder::decode($item['description']));
+                $newsItem->setGuid($item['guid']);
+                $newsItem->setPubDate($item['pubDate']);
+                $newsItem->setAuthor(UniCharDecoder::decode($item['author'] ?? null));
+                $newsItem->setEnclosure($item['enclosure'] ?? null);
                 $this->entityManager->persist($newsItem);
                 if (($this->i % self::BATCH_SIZE) === 0) {
                     $this->entityManager->flush();

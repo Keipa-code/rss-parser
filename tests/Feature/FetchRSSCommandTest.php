@@ -46,7 +46,6 @@ class FetchRSSCommandTest extends DatabaseDependantTestCase
 
         $this->assertEquals($newsItem['author'] ?? '', $newsItemRecord->getAuthor());
         $this->assertEquals($newsItem['enclosure'] ?? '', $newsItemRecord->getEnclosure());
-        $this->assertEquals(true, $newsItemRecord->getLast());
     }
 
     /** @test */

@@ -1,0 +1,52 @@
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+{% if field.value %}
+    <div class="w3-row-padding">
+        {% if field.value.attributes is defined %}
+            {% if field.value.attributes.type == "image/jpeg" %}
+                <div class="w3-container w3-third">
+                    <img src="{{ field.value.attributes.url }}" style="width:100%;cursor:pointer"
+                         onclick="onClick(this)" class="w3-hover-opacity">
+                </div>
+            {% else %}
+                <video width="320" height="240" controls>
+                    <source src="{{ field.value.attributes.url }}" type="video/mp4">
+                </video>
+            {% endif %}
+        {% else %}
+            <div class="w3-container w3-third">
+            {% for media in field.value %}
+                {% if media.attributes.type == "image/jpeg" %}
+
+                        <img src="{{ media.attributes.url }}" style="width:100%;cursor:pointer"
+                             onclick="onClick(this)" class="w3-hover-opacity">
+
+                {% endif %}
+            {% endfor %}
+            {% for media in field.value %}
+                {% if media.attributes.type == "video/mp4" %}
+                <video width="320" height="240" controls>
+                    <source src="{{ media.attributes.url }}" type="video/mp4">
+                </video>
+                {% endif %}
+            {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <div id="modal01" class="w3-modal" onclick="this.style.display='none'">
+        <span class="w3-button w3-hover-red w3-xlarge w3-display-topright">&times;</span>
+        <div class="w3-modal-content w3-animate-zoom">
+            <img id="img01" style="width:100%">
+        </div>
+    </div>
+
+{% endif %}
+
+
+<script>
+  function onClick(element) {
+    document.getElementById("img01").src = element.src;
+    document.getElementById("modal01").style.display = "block";
+  }
+</script>
+<script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>

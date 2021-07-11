@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\NewsItemRepository;
 use Doctrine\DBAL\Types\GuidType;
 use Doctrine\ORM\Mapping as ORM;
+use Exception;
 
 /**
  * @ORM\Entity(repositoryClass=NewsItemRepository::class)
@@ -52,26 +53,6 @@ class NewsItem
      */
     private ?array $enclosure=[];
 
-
-    public function __construct(
-        string $title,
-        string $link,
-        string $description,
-        string $guid,
-        \DateTimeImmutable $pudDate,
-        string $author = null,
-        array $enclosure = null
-    )
-    {
-        $this->title       = $title;
-        $this->link        = $link;
-        $this->description = $description;
-        $this->guid        = $guid;
-        $this->pubDate     = $pudDate;
-        $this->author      = $author;
-        $this->enclosure   = $enclosure;
-    }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -106,9 +87,12 @@ class NewsItem
         return $this->pubDate;
     }
 
-    public function setPubDate(\DateTimeImmutable $pubDate): self
+    /**
+     * @throws Exception
+     */
+    public function setPubDate(string $pubDate): self
     {
-        $this->pubDate = $pubDate;
+        $this->pubDate = new \DateTimeImmutable($pubDate);
 
         return $this;
     }
@@ -130,9 +114,20 @@ class NewsItem
         return $this->enclosure;
     }
 
-    public function setEnclosure(?string $enclosure): self
+    public function setEnclosure(?array $enclosure): self
     {
-        $this->enclosure = $enclosure;
+        if($enclosure) {
+            if(isset($enclosure['@attributes'])){
+                $array['attributes'] = $enclosure['@attributes'];
+            } else {
+                $array = array_map(function($tag) {
+                    return array(
+                        'attributes' => $tag['@attributes']
+                    );
+                }, $enclosure);
+            }
+        }
+        $this->enclosure = $array ?? null;
 
         return $this;
     }
