@@ -1,0 +1,16 @@
+[Unit]
+    Description=RSS fetch api
+    After=docker.service
+    Requires=docker.service
+[Service]
+Restart=always
+
+#Set working directory where your docker-compose.yaml | Напишите путь к папке с docker-compose.yaml
+WorkingDirectory=/home/baur/PhpstormProjects/rss-server/
+ExecStartPre=/usr/local/bin/docker-compose up -f ./docker-compose.yaml
+ExecStart=/usr/local/bin/docker-compose run --rm php-cli ./bin/console app:rssapi:fetch
+ExecStop=/usr/local/bin/docker-compose  down
+RestartSec=360
+
+[Install]
+WantedBy=multi-user.target

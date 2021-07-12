@@ -1,1 +1,5 @@
-# rss-parser
+# RSS парсер
+
+Требования:
+    - Docker
+    - Docker-compose

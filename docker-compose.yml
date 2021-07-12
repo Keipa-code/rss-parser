@@ -1,9 +1,10 @@
 version: '3.2'
 services:
 
-  api:
+  nginx:
     ports:
     - 80:80
+    restart: always
     build:
       context: docker
       dockerfile: development/nginx/Dockerfile
@@ -18,14 +19,11 @@ services:
       dockerfile: development/php-fpm/Dockerfile
     volumes:
       - ./:/var/www
+    restart: always
     environment:
       PHP_IDE_CONFIG: "serverName=Docker-rss"
       APP_ENV: dev
       APP_DEBUG: 1
-      DB_HOST: postgres
-      DB_USER: admin
-      DB_PASSWORD: 123456
-      DB_NAME: phonedir
 
   php-cli:
     build:
@@ -37,14 +35,10 @@ services:
     environment:
       APP_ENV: dev
       APP_DEBUG: 1
-      DB_HOST: postgres
-      DB_USER: admin
-      DB_PASSWORD: 123456
-      DB_NAME: phonedir
-      FRONTEND_URL: http://localhost:8080
 
   postgres:
     image: postgres:13.1-alpine
+    restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456

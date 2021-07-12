@@ -9,6 +9,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class ParseLogCrudController extends AbstractCrudController
@@ -22,7 +23,8 @@ class ParseLogCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
-            DateField::new('date'),
+            DateTimeField::new('date')
+                ->setTimezone('Asia/Oral'),
             TextField::new('requestMethod'),
             TextField::new('requestURL'),
             TextField::new('responseHTTPCode'),
